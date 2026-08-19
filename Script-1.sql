@@ -328,3 +328,248 @@ SELECT FIRST_NAME
 SELECT ADD_MONTHS(SYSDATE, -240)
   FROM DUAL
 ;  
+
+-- 이름이 'a'로 끝나는 사원의 이름과 성을 조회한다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+  FROM EMPLOYEES
+ WHERE FIRST_NAME LIKE '%a'
+;
+-- 성이 'A'로 시작하는 사원의 이름과 성을 조회한다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+  FROM EMPLOYEES
+ WHERE FIRST_NAME LIKE 'A%'
+;
+-- 이름과 성에 'e'가 있는(포함되어있는) 사원의 이름과 성을 조회한다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+  FROM EMPLOYEES
+ WHERE FIRST_NAME LIKE '%e%'
+   AND LAST_NAME LIKE '%e%'
+;
+-- 이름 또는 성에 'g'가 있는(포함되어있는) 사원의 이름과 성을 조회한다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+  FROM EMPLOYEES
+ WHERE FIRST_NAME LIKE '%g%'
+   AND LAST_NAME LIKE '%g%'
+;
+-- 이름이 5자리인 사원의 이름과 성을 조회한다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+  FROM EMPLOYEES
+ WHERE FIRST_NAME LIKE '_____'
+;
+-- 이름이 4자리 이상인 사원의 이름과 성을 조회한다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+  FROM EMPLOYEES
+ WHERE FIRST_NAME LIKE '%____%'
+;
+-- 성이 4자리 이상이며 다섯번째 자리의 글자가 'e'인 사원의 이름과 성을 조회한다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+  FROM EMPLOYEES
+ WHERE LAST_NAME LIKE '____e%'
+;
+-- 도시명이 'S'로 시작하는 도시의 이름을 조회한다.
+SELECT CITY
+  FROM LOCATIONS
+ WHERE CITY LIKE 'S%'
+;
+-- 부서의 이름에 'r'이 있는(포함되어있는) 부서의 이름을 조회한다.
+SELECT DEPARTMENT_NAME
+  FROM DEPARTMENTS
+ WHERE DEPARTMENT_NAME LIKE '%r%'
+;
+
+-- 전체 사원의 수를 조회한다.
+SELECT COUNT(*)
+  FROM EMPLOYEES
+;
+SELECT COUNT(1)
+  FROM EMPLOYEES
+;
+SELECT COUNT(EMPLOYEE_ID)
+  FROM EMPLOYEES
+;
+-- 70번 부서에서 근무 중인 사원의 수를 조회한다.
+SELECT COUNT(EMPLOYEE_ID)
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = 70
+;
+
+-- 전체 사원들의 급여 총 합을 조회한다.
+SELECT SUM(SALARY)
+  FROM EMPLOYEES
+;
+-- 전체 사원 중 최저 급여를 조회한다.
+SELECT MIN(SALARY)
+  FROM EMPLOYEES
+;
+-- 전체 사원 중 최고 급여를 조회한다.
+SELECT MAX(SALARY)
+  FROM EMPLOYEES
+;
+-- 전체 사원의 평균 급여를 조회한다.
+SELECT AVG(SALARY)
+  FROM EMPLOYEES
+;
+-- 전체 사원 중 가장 일찍 입사한 날짜를 조회한다.
+SELECT MIN(HIRE_DATE)
+  FROM EMPLOYEES
+;
+-- 전체 사원 중 가장 늦게 입사한 날짜를 조회한다.
+SELECT MAX(HIRE_DATE)
+  FROM EMPLOYEES
+;
+-- 50번 부서에서 근무하는 사원들의 급여 총합을 조회한다.
+SELECT SUM(SALARY)
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = 50
+;
+-- 60번 부서에서 근무하는 사원들의 평균 급여를 조회한다.
+SELECT AVG(SALARY)
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = 60
+;
+-- 80번 부서에서 근무하는 사원들의 최고 급여를 조회한다.
+SELECT MAX(SALARY)
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = 80
+;
+-- 90번 부서에서 근무하는 사원들의 최저 급여를 조회한다.
+SELECT MIN(SALARY)
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = 90
+;
+-- 100번 부서에서 근무하는 사원들의 최고 급여, 최저 급여,
+-- 가장 일찍 입사한 날짜, 가장 늦게 입사한 날짜, 평균 급여, 급여 총합을 조회한다.
+SELECT MAX(SALARY)
+	 , MIN(SALARY)
+	 ,TO_CHAR(MIN(HIRE_DATE) , 'YYYY-MM-DD') AS EARLIEST_HIRED
+	 ,TO_CHAR(MAX(HIRE_DATE) , 'YYYY-MM-DD') AS LATEST_HIRED
+	 , AVG(SALARY)
+	 , SUM(SALARY)
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = 100
+;
+-- 전체 사원들의 최고 급여와 최저 급여의 차를 조회한다.
+SELECT MAX(SALARY) - MIN(SALARY)
+  FROM EMPLOYEES
+ ;
+
+-- 같은 급여별 받는 사원들은 몇명인지 급여별 사원의 수를 조회한다.
+SELECT SALARY  
+	 , COUNT(EMPLOYEE_ID)
+  FROM EMPLOYEES
+ GROUP BY SALARY
+ ORDER BY SALARY ASC
+;
+-- 직무 아이디별 사원의 수, 급여의 총합, 평균 급여, 최고 급여, 최소 급여, 
+--    가장 빠른 입사일, 가장 늦은 입사일을 조회한다.
+SELECT COUNT(EMPLOYEE_ID)
+	 , SUM(SALARY)
+	 , AVG(SALARY)
+	 , MAX(SALARY)
+	 , MIN(SALARY)
+	 , MIN(HIRE_DATE)
+	 , MAX(HIRE_DATE)
+  FROM EMPLOYEES
+ GROUP BY JOB_ID 
+
+-- 부서의 지역번호 별 부서의 개수를 조회한다.
+SELECT COUNT(DEPARTMENT_ID )
+  FROM DEPARTMENTS
+ GROUP BY LOCATION_ID 
+;
+-- 지역의 국가아이디 별 지역의 개수를 조회한다.
+SELECT COUNT(LOCATION_ID )
+  FROM LOCATIONS
+ GROUP BY COUNTRY_ID 
+;
+-- 부서번호 별 사원의 수, 급여의 총합을 조회한다.
+-- 이 때, 사원의 수가 2이상인 것과 급여의 총합이 20000 이상인것만 조회한다.
+SELECT COUNT(EMPLOYEE_ID )
+	 , SUM(SALARY)
+  FROM EMPLOYEES
+ GROUP BY DEPARTMENT_ID
+HAVING COUNT(EMPLOYEE_ID) > 1
+   AND SUM(SALARY) >= 20000 
+;
+
+-- 같은 급여를 받는 사원들은 몇 명인지 급여별 사원의 수를 조회한다.
+-- 이 때, 사원의 수가 1인 것은 제외한다.
+SELECT SALARY  
+	 , COUNT(EMPLOYEE_ID)
+  FROM EMPLOYEES
+ GROUP BY SALARY
+HAVING COUNT(EMPLOYEE_ID) > 1
+ ORDER BY SALARY ASC
+;
+
+-- 평균 급여보다 많은 급여를 받는 사원의 이름, 성, 급여를 조회한다.
+-- 1.특정할 수 없는 데이터가 무엇인가? ==> 평균 급여 = 6461.831775700934579439252336448598130841
+SELECT AVG(SALARY)
+  FROM EMPLOYEES
+;
+-- 2.특정할 수 없는 평균 급여를 무엇과 비교를 해야하는가?
+-- 사원들의 급여와 비교한다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+	 , SALARY
+  FROM EMPLOYEES
+ WHERE SALARY > 6461.831775700934579439252336448598130841
+;
+-- 두 쿼리를 하나로 합친다.
+SELECT FIRST_NAME 
+	 , LAST_NAME
+	 , SALARY
+  FROM EMPLOYEES
+ WHERE SALARY > (SELECT AVG(SALARY)
+  				   FROM EMPLOYEES)	
+;
+
+-- IT 부서에서 근무중인 사원들의 부서 번호와 이름을 조회한다.
+-- 1. 특정할 수 없는 것 == IT 부서의 부서 번호
+SELECT DEPARTMENT_ID 
+  FROM DEPARTMENTS
+ WHERE DEPARTMENT_NAME = 'IT'
+;
+-- 2. 무엇과 비교를 해야 하는가?
+SELECT DEPARTMENT_ID 
+	 , FIRST_NAME 
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = 60
+;
+
+SELECT DEPARTMENT_ID 
+	 , FIRST_NAME 
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = (SELECT DEPARTMENT_ID 
+  						  FROM DEPARTMENTS
+ 						 WHERE DEPARTMENT_NAME = 'IT')	
+;
+
+-- "Marketing Representative" 이름의 직무를 수행 중인 사원의 직무 아이디, 급여를 조회한다.
+-- 1. 특정할 수 없는것? = > "Marketing Representative" 직무의 아이디
+SELECT JOB_ID
+  FROM JOBS
+ WHERE JOB_TITLE = 'Marketing Representative'
+;
+
+-- 2. 무엇과 비교해야하는가? => 사원의 직무 아이디
+SELECT JOB_ID 
+	 , SALARY 
+  FROM EMPLOYEES
+ WHERE JOB_ID = 'Marketing Representative'
+;
+-- 3. 하나로 합친다.
+ SELECT JOB_ID 
+	  , SALARY 
+  FROM EMPLOYEES
+ WHERE JOB_ID = (SELECT JOB_ID
+  				   FROM JOBS
+ 				  WHERE JOB_TITLE = 'Marketing Representative')
+;
