@@ -573,3 +573,193 @@ SELECT JOB_ID
   				   FROM JOBS
  				  WHERE JOB_TITLE = 'Marketing Representative')
 ;
+
+-- ERD
+
+-- 직무가 변경된 사원들의 사원번호, 이름, 급여, 현재 수행중인 직무의 이름, 과거에 근무했던 부서의 이름, 현재 근무중인 부서의 이름을 조회한다.
+SELECT E.EMPLOYEE_ID 
+	 , E.FIRST_NAME 
+	 , E.SALARY 
+	 , J.JOB_TITLE AS PRESENT_JOB
+	 , DEPT_PAST.DEPARTMENT_NAME AS PAST_DEPT
+	 , DEPT_PRES.DEPARTMENT_NAME AS PRES_DEPT
+  FROM EMPLOYEES E
+ INNER JOIN JOB_HISTORY JH  -- 직무변경이력 + 사원
+ 	ON E.EMPLOYEE_ID = JH.EMPLOYEE_ID
+ INNER JOIN JOBS J -- 사원 + 직무
+ 	ON E.JOB_ID = J.JOB_ID
+ INNER JOIN DEPARTMENTS DEPT_PRES --사원 + 부서
+ 	ON E.DEPARTMENT_ID = DEPT_PRES.DEPARTMENT_ID 
+ INNER JOIN DEPARTMENTS DEPT_PAST -- 직무변경이력 + 부서
+ 	ON DEPT_PAST.DEPARTMENT_ID = JH.DEPARTMENT_ID 
+ ;
+
+-- 테이블 조인(여러 테이블을 관계를 이용해 하나의 테이블로 만드는 과정) 연습
+-- 사원 테이블 + 부서 테이블 == > 사원_부서
+-- 사원의 이름, 사원의 성, 급여, 부서장의 사원번호,부서명
+SELECT EMPLOYEES.FIRST_NAME
+	 , EMPLOYEES.LAST_NAME 
+	 , EMPLOYEES.SALARY
+	 , DEPARTMENTS.MANAGER_ID
+	 , DEPARTMENTS.DEPARTMENT_NAME
+  FROM EMPLOYEES
+ INNER JOIN DEPARTMENTS
+ 	ON DEPARTMENTS.DEPARTMENT_ID = EMPLOYEES.DEPARTMENT_ID 
+;
+
+-- 사원의 이름과 성, 직무아이디, 직무의 이름, 급여, 최대 급여, 최소 급여를 조회한다.
+SELECT e.FIRST_NAME 
+	 , e.LAST_NAME 
+	 , j.JOB_ID 
+	 , j.JOB_TITLE 
+	 , e.SALARY 
+	 , j.MAX_SALARY 
+	 , j.MIN_SALARY 
+  FROM EMPLOYEES e
+ INNER JOIN JOBS j 
+ 	ON e.JOB_ID = j.JOB_ID
+;
+
+-- 3개 이상 테이블 조인 방법
+-- 사원 + 부서 + 직무
+SELECT *
+  FROM EMPLOYEES E 
+ INNER JOIN DEPARTMENTS D -- 사원 + 부서
+ 	ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+ INNER JOIN JOBS J -- 사원 + 직무
+	ON E.JOB_ID = J.JOB_ID 
+; 	
+-- 사원 + 부서 + 직무 + 지역
+SELECT *
+  FROM EMPLOYEES E 
+ INNER JOIN DEPARTMENTS D 
+ 	ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ INNER JOIN JOBS J 
+ 	ON E.JOB_ID = J.JOB_ID 
+ INNER JOIN LOCATIONS L 
+ 	ON D.LOCATION_ID = L.LOCATION_ID 
+;
+-- 자원 + 부서 + 지역 + 국가 + 대륙
+SELECT *
+  FROM EMPLOYEES E 
+ INNER JOIN DEPARTMENTS D 
+ 	ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ INNER JOIN LOCATIONS L 
+ 	ON D.LOCATION_ID = L.LOCATION_ID 
+ INNER JOIN COUNTRIES C
+ 	ON L.COUNTRY_ID = C.COUNTRY_ID 
+ INNER JOIN REGIONS R 
+ 	ON C.REGION_ID = R.REGION_ID 
+;
+
+-- 80번 부서의 부서장으로 근무하는 사원의 직무명을 조회한다.
+SELECT MANAGER_ID 
+  FROM DEPARTMENTS
+ WHERE DEPARTMENT_ID = 80
+;
+SELECT JOB_ID
+  FROM EMPLOYEES
+ WHERE EMPLOYEE_ID = (SELECT MANAGER_ID 
+  						FROM DEPARTMENTS
+ 					   WHERE DEPARTMENT_ID = 80)			
+;
+SELECT JOB_TITLE
+  FROM JOBS
+ WHERE JOB_ID = (SELECT JOB_ID
+  				   FROM EMPLOYEES
+ 				  WHERE EMPLOYEE_ID = (SELECT MANAGER_ID 
+  										 FROM DEPARTMENTS
+ 					   					WHERE DEPARTMENT_ID = 80))
+; 					   					
+-- 103번 사원이 근무중인 부서의 이름을 조회한다.
+SELECT d.DEPARTMENT_NAME 
+  FROM DEPARTMENTS d 
+ WHERE d.DEPARTMENT_ID IN (SELECT DEPARTMENT_ID
+ 							 FROM EMPLOYEES e 
+ 							WHERE e.EMPLOYEE_ID  = 103)
+;
+-- 118번 사원이 근무중인 부서의 도시명을 조회한다.
+SELECT l.CITY  
+  FROM DEPARTMENTS d , LOCATIONS l 
+ WHERE d.DEPARTMENT_ID IN (SELECT DEPARTMENT_ID
+ 							 FROM EMPLOYEES e 
+ 							WHERE e.EMPLOYEE_ID  = 118)
+   AND l.LOCATION_ID = d.LOCATION_ID  
+;
+SELECT CITY
+  FROM LOCATIONS
+ WHERE LOCATION_ID = (SELECT LOCATION_ID 
+ 						FROM DEPARTMENTS
+ 					   WHERE DEPARTMENT_ID  = (SELECT DEPARTMENT_ID 
+ 					   							 FROM EMPLOYEES
+ 					   							WHERE EMPLOYEE_ID = 118))
+;
+-- 102번 사원이 수행중인 직무의 이름과 최대 급여, 최소 급여를 조회한다.
+SELECT JOB_TITLE 
+	 , MAX_SALARY 
+	 , MIN_SALARY 
+  FROM JOBS
+ WHERE JOB_ID IN (SELECT EMPLOYEES.JOB_ID 
+ 					FROM EMPLOYEES
+ 				   WHERE EMPLOYEE_ID = 102)
+;
+
+-- Seattle에서 근무중인 사원들의 직무 명을 중복없이 조회한다.
+SELECT JOB_TITLE
+  FROM JOBS
+ WHERE JOB_ID IN (SELECT DISTINCT JOB_ID
+ 					FROM EMPLOYEES
+ 				   WHERE DEPARTMENT_ID IN (SELECT DEPARTMENT_ID
+ 				   							 FROM DEPARTMENTS
+ 											WHERE LOCATION_ID IN (SELECT LOCATION_ID
+ 						   											FROM LOCATIONS
+ 						 										   WHERE CITY = 'Seattle' 
+ 							 										)
+ 							 				)		 
+ 				   )
+ 
+;
+-- Seattle에 있는 부서의 이름과 부서장의 사원 번호를 조회한다
+SELECT d.DEPARTMENT_NAME 
+	 , d.MANAGER_ID 
+  FROM DEPARTMENTS d 
+ WHERE d.LOCATION_ID IN (SELECT l.LOCATION_ID
+ 						   FROM LOCATIONS l
+ 						  WHERE l.CITY = 'Seattle' 
+ 							 )
+;
+ 
+-- Asia에 근무중인 사원들의 이름과 성, 부서 번호를 조회한다.
+SELECT e.FIRST_NAME 
+	 , e.LAST_NAME 
+	 , e.DEPARTMENT_ID 
+  FROM EMPLOYEES e 
+ WHERE e.DEPARTMENT_ID IN (SELECT d.DEPARTMENT_ID 
+ 							 FROM DEPARTMENTS d 
+ 							WHERE d.LOCATION_ID IN (SELECT l.LOCATION_ID 
+ 													  FROM LOCATIONS l 
+ 													 WHERE l.COUNTRY_ID IN (SELECT c.COUNTRY_ID 
+ 													 						  FROM COUNTRIES c 
+ 													 						 WHERE c.REGION_ID IN (SELECT r.REGION_ID 
+ 													 						 						 FROM REGIONS r 
+ 													 						 						WHERE r.REGION_NAME = 'Asia'
+ 													 												)
+ 													 						) 
+ 													 )
+ 							)
+;
+
+
+
+-- 101. 직무가 변경된 사원의 과거 직무명과 현재 직무명을 조회한다.
+SELECT E.FIRST_NAME 
+	 , J.JOB_TITLE AS PRESENT
+	 , J_PAST.JOB_TITLE 
+  FROM EMPLOYEES E
+ INNER JOIN JOBS J 
+ 	ON E.JOB_ID = J.JOB_ID
+ INNER JOIN JOB_HISTORY JH 
+ 	ON E.EMPLOYEE_ID = JH.EMPLOYEE_ID 
+ INNER JOIN JOBS J_PAST
+	ON J_PAST.JOB_ID = JH.JOB_ID 
+ ;
