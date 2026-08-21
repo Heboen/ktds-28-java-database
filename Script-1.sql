@@ -576,6 +576,92 @@ SELECT JOB_ID
 
 -- ERD
 
+-- 테이블 조인 + 그룹핑
+-- 직무명 별 수행중인 사원의 수를 조회한다.
+SELECT J.JOB_TITLE 
+	 , COUNT(E.EMPLOYEE_ID )
+  FROM EMPLOYEES E
+ INNER JOIN JOBS J
+ 	ON E.JOB_ID = J.JOB_ID 
+ GROUP BY J.JOB_TITLE 
+;
+-- 직무명 별 수행중인 사원의 수를 조회한다. 직무명으로 오름차순 정렬
+SELECT J.JOB_TITLE 
+	 , COUNT(E.EMPLOYEE_ID )
+  FROM EMPLOYEES E
+ INNER JOIN JOBS J
+ 	ON E.JOB_ID = J.JOB_ID 
+ GROUP BY J.JOB_TITLE 
+ ORDER BY J.JOB_TITLE ASC
+;
+-- 직무명 별 수행중인 사원의 수를 조회한다. 사원의 수로 내림차순 정렬
+SELECT J.JOB_TITLE 
+	 , COUNT(E.EMPLOYEE_ID ) AS EMP_CNT
+  FROM EMPLOYEES E
+ INNER JOIN JOBS J
+ 	ON E.JOB_ID = J.JOB_ID 
+ GROUP BY J.JOB_TITLE 
+ ORDER BY EMP_CNT DESC
+;
+
+-- 테이블 조인 + 조건
+-- 108번 사원의 이름과 부서명을 조회한다.
+SELECT E.FIRST_NAME 
+	 , D.DEPARTMENT_NAME 
+  FROM EMPLOYEES E 
+ INNER JOIN DEPARTMENTS D 
+ 	ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+ WHERE E.EMPLOYEE_ID = 108
+;
+
+-- 108번 사원의 이름과 부서명을 조회한다.(조인 최적화)
+SELECT E.FIRST_NAME 
+	 , D.DEPARTMENT_NAME
+  FROM EMPLOYEES E
+ INNER JOIN DEPARTMENTS D
+ 	ON E.EMPLOYEE_ID = 108
+   AND E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+;
+
+-- 직무의 아이디가 AD_VP이거나 부서의 번호가 70번인 사원의 이름, 직무 명, 부서 명 조회한다.
+SELECT E.FIRST_NAME 
+	 , J.JOB_TITLE 
+	 , D.DEPARTMENT_NAME
+  FROM EMPLOYEES E 
+ INNER JOIN DEPARTMENTS D 
+ 	ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ INNER JOIN JOBS J
+ 	ON E.JOB_ID = J.JOB_ID 
+ WHERE J.JOB_ID = 'AD_VP'
+ 	OR D.DEPARTMENT_ID = 70
+;
+
+-- 직무명이 Administration Vice President 이거나 부서의 번호가 70번인 사원의 이름, 부서 명 조회한다.
+SELECT E.FIRST_NAME 
+	 , D.DEPARTMENT_NAME
+  FROM EMPLOYEES E 
+ INNER JOIN DEPARTMENTS D 
+ 	ON E.DEPARTMENT_ID = D.DEPARTMENT_ID  
+ WHERE E.DEPARTMENT_ID = 70
+ 	OR E.JOB_ID = (SELECT J.JOB_ID
+ 					 FROM JOBS J
+ 					WHERE J.JOB_TITLE = 'Administration Vice President')
+;
+
+-- Europe에 근무중인 모든 사원의 이름과 근무중인 도시를 조회한다.
+SELECT E.FIRST_NAME
+	 , L.CITY
+  FROM EMPLOYEES E
+ INNER JOIN DEPARTMENTS D 
+ 	ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ INNER JOIN LOCATIONS L 
+ 	ON D.LOCATION_ID = L.LOCATION_ID
+ WHERE L.COUNTRY_ID IN (SELECT C.COUNTRY_ID
+ 						  FROM COUNTRIES C 
+ 						 WHERE C.REGION_ID = (SELECT R.REGION_ID
+ 						 						FROM REGIONS R
+ 						 					   WHERE R.REGION_NAME = 'Europe'))
+;
 -- 직무가 변경된 사원들의 사원번호, 이름, 급여, 현재 수행중인 직무의 이름, 과거에 근무했던 부서의 이름, 현재 근무중인 부서의 이름을 조회한다.
 SELECT E.EMPLOYEE_ID 
 	 , E.FIRST_NAME 
