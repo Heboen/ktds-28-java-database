@@ -574,7 +574,180 @@ SELECT JOB_ID
  				  WHERE JOB_TITLE = 'Marketing Representative')
 ;
 
+
 -- ERD
+
+-- UNION 규칙
+-- 집합간의 컬럼타입이 일치해야 한다.
+SELECT 1 AS NUM
+	 , 'A' AS STR
+  FROM DUAL
+ UNION
+SELECT 2
+	 , 'B'
+  FROM DUAL
+;
+
+SELECT 1 AS NUM
+  FROM DUAL
+ UNION
+SELECT 2
+  FROM DUAL
+ UNION ALL
+SELECT 2
+  FROM DUAL
+;
+
+SELECT 1 AS NUM
+  FROM DUAL
+ UNION ALL
+SELECT 2
+  FROM DUAL
+ UNION ALL
+SELECT NUM2
+  FROM (SELECT -1 AS NUM2
+  		  FROM DUAL
+  		 UNION ALL
+  		SELECT 0 AS NUM2
+  		  FROM DUAL
+  		 UNION ALL
+  		SELECT -7 AS NUM2
+  		  FROM DUAL
+  		ORDER BY NUM2 ASC)
+;
+
+
+-- MOD -> 나머지 구하는 함수
+SELECT MOD(10,3)
+	 , MOD(10,2)
+  FROM DUAL
+;
+
+-- CASE WHEN ELSE END
+-- 비교 연산 (IF ~ ELSE IF ELSE)
+WITH TMP AS (
+SELECT 'Y' AS FLAG
+  FROM DUAL
+ UNION
+SELECT 'N'
+  FROM DUAL
+ UNION
+SELECT 'R'
+  FROM DUAL
+ UNION
+SELECT NULL
+  FROM DUAL
+)
+-- TMP테이블의 FLAG 컬럼의 값이 'Y' 라면 "On" 으로 조회하고, 'R'이라면 "Ready'로 조회하고, 아니라면 "Off"로 조회한다.
+-- NULL 이라면 Error를 조회한다.
+SELECT FLAG 
+	 , CASE 
+	 		WHEN FLAG = 'Y' THEN
+	 			'On'
+	 		WHEN FLAG = 'R' THEN
+	 			'Ready'
+	 		WHEN FLAG IS NULL THEN
+	 			'Error'
+	 		ELSE
+	 			'Off'
+	 	END AS ON_OFF 
+  FROM TMP
+;
+
+WITH NUMBERS AS(
+	SELECT 10 AS NUM
+	  FROM DUAL
+	 UNION
+	SELECT 20 
+	  FROM DUAL
+	 UNION
+	SELECT 30
+	  FROM DUAL
+)
+-- NUM값이 30이상이면 "3", 20이상이면 "2", 10이상이면 "1" 아니면 "0"으로 조회한다.
+SELECT NUM 
+	 , CASE
+	 		WHEN NUM >= 30 THEN '3'
+	 		WHEN NUM >= 20 THEN '2'
+	 		WHEN NUM >= 10 THEN '1'
+	 		ELSE '0'
+	 END AS NUM_BOOL
+  FROM NUMBERS
+;
+
+-- 1, 사원의 사원번호, 부서번호, 근무현황을 조회한다.
+-- 근무현황: 근무하는 부서가 있을 경우 "근무 중", 아닐 경우 "발령 대기"
+SELECT EMPLOYEE_ID
+	 , DEPARTMENT_ID
+	 , CASE
+	 		WHEN DEPARTMENT_ID IS NOT NULL THEN '근무 중'
+	 		ELSE '발령 대기'
+	 END AS "근무 현황"
+  FROM EMPLOYEES
+;
+	 
+-- 2. 사원의 사원 번호, 입사일, 입사순서를 조회한다.
+-- 입사 순서: 가장 빨리 입사한 사원은 "원년 사원", 가장 늦게 입사한 사원은 "신규 사원", 아닐 경우 "사원"
+SELECT EMPLOYEE_ID
+	 , HIRE_DATE
+	 , CASE
+	 		 WHEN HIRE_DATE = (SELECT MIN(HIRE_DATE) FROM EMPLOYEES ) THEN '원년 사원'
+	 		 WHEN HIRE_DATE = (SELECT MAX(HIRE_DATE) FROM EMPLOYEES ) THEN '신규 사원'
+	 		 ELSE '사원'
+	 END AS "입사 순서"
+  FROM EMPLOYEES
+;
+-- 임시 테이블
+WITH DATES AS (
+	SELECT MAX(HIRE_DATE) AS MAX_HIRE_DATE
+		 , MIN(HIRE_DATE) AS MIN_HIRE_DATE
+	  FROM EMPLOYEES
+)
+SELECT EMPLOYEE_ID
+	 , HIRE_DATE
+	 , CASE HIRE_DATE
+	 		WHEN MAX_HIRE_DATE THEN '신규 사원'
+	 		WHEN MIN_HIRE_DATE THEN '원년 사원'
+	 		ELSE '사원'
+	   END AS "입사 순서"
+  FROM EMPLOYEES ,DATES
+;
+-- CROSS JOIN (데이터를 조건 상관 없이 모든 ROW에 다 같다 붙이는 조인)
+SELECT EMPLOYEE_ID
+	 , HIRE_DATE
+	 , CASE HIRE_DATE
+	 	 	WHEN DATES.MAX_HIRE_DATE THEN '신규 사원'
+	 	 	WHEN DATES.MIN_HIRE_DATE THEN '원년 사원'
+	 	 	ELSE '사원'
+	   END AS "입사 순서"
+  FROM EMPLOYEES
+ CROSS JOIN (SELECT MAX(HIRE_DATE) AS MAX_HIRE_DATE
+ 				  , MIN(HIRE_DATE) AS MIN_HIRE_DATE
+ 			   FROM EMPLOYEES) DATES
+;
+ 		
+	 
+-- LPAD, RPAD 오라클 전용
+-- 실제로는 LPAD의 사용빈도가 더 높음
+SELECT 'A' AS LETTER
+	 , 10 AS NUM
+	 , LPAD('A', 10, '1')
+	 , LPAD(10, 10, '-')
+	 , RPAD('A', 10, '1')
+	 , RPAD(10, 10, '-')
+	 , LPAD('ABCDEFGHIJKLMNOP', 10, '!')
+	 , RPAD('ABCDEFGHIJKLMNOP', 10, '!')
+  FROM DUAL
+;
+
+-- 단위 숫자 버림 TRUNC()
+SELECT EMPLOYEE_ID
+	 , SALARY
+	 , SALARY /1000
+	 , TRUNC(SALARY/1000)
+	 , TRUNC(SALARY /1000) *1000
+  FROM EMPLOYEES
+;
 
 -- OUTER JOIN
 -- 모든 사원들의 이름과 부서의 이름을 조회한다.
