@@ -1,0 +1,12 @@
+-- 새로운 시퀀스 발급하기
+SELECT TEST_SEQ.NEXTVAL
+	 , CACHED_SEQ.NEXTVAL
+  FROM DUAL
+;
+
+-- 시퀀스들의 현재값 출력해보기
+SELECT TEST_SEQ.CURRVAL
+	 , CACHED_SEQ.CURRVAL
+  FROM DUAL
+;
+
